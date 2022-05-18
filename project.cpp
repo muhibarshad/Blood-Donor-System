@@ -194,13 +194,14 @@ void search_record_ByBloodGroup(record donor[], int index)
 void update_record_ofDonor(record donor[], int index)
 {
     string updateBy_name;
-    string updated_date;
     bool found = false;
     cout << endl;
     cout << "\t\t\t Enter the name of the donor to update its data:";
     getline(cin, updateBy_name);
     cout << endl;
-    file.open("bds_donor_data.txt", ios::in | ios::binary);
+    file.open("bds_donor_data.txt", ios::in | ios::binary |ios::out);
+    //to get the curser at the start use the seekg
+    file.seekg(0);
     if (file.is_open())
     {
         for (int i = 0; i < index && found == false; i++)
@@ -212,52 +213,28 @@ void update_record_ofDonor(record donor[], int index)
                 // updation
                 cout << "\t\t\t** Donor blood donation times updated from " << donor[i].no_ofDonate << " to " << donor[i].no_ofDonate + 1 << "**" << endl;
                 cout << "\t\t\t   Enter the date of the updated Donation:";
-                getline(cin, updated_date);
-                file.close();
-                // writing updated file to the temporary file
-                temp.open("temp.txt", ios::out | ios ::binary);
-                for (int i = 0; i < index; i++)
-                {
-                    if (donor[i].name == updateBy_name)
-                    {
-                        donor[i].no_ofDonate = donor[i].no_ofDonate + 1;
-                        donor[i].dateof_Donation = updated_date;
-                    }
-                    temp.write(reinterpret_cast<char *>(&donor[i]), sizeof(record));
-                }
-                temp.close();
+                getline(cin,donor[i].dateof_Donation);
+                donor[i].no_ofDonate = donor[i].no_ofDonate+1;
+                
+                //to change the position of the getting cursor position use seekp
+                //ios::cur is the offset of the seekp that gives that we want to be beg,cur and end position of the file
+                //seekp has the two arguments first gives how much bytes it can move,and second argument gives where to start move the position where 
+                //negative sign show move forward or backward
+                file.seekp(-sizeof(record),ios::cur);
+                file.write(reinterpret_cast<char *>(&donor[i]), sizeof(record));
+
                 found = true;
-            }
+            }   
         }
-        temp.open("temp.txt", ios::in | ios ::binary);
-        file.open("bds_donor_data.txt", ios::out | ios::binary);
-        if (temp.is_open() && file.is_open())
-        {
-            char c;
-            while (true)
-            {
-                c = temp.get();
-                if (temp.eof())
-                    break;
-                file.put(c);
-            }
-        }
-        else
-        {
-            cout << endl;
-            cout << "\t\t\t\tTemp and File are not opened:" << endl;
-            cout << endl;
-        }
-        cout << "\t\t\t *RECORD UPDATED*:" << endl;
-        file.close();
-        temp.close();
+        
     }
     else
     {
         cout << endl;
         cout << "\t\t\t File is not openend:" << endl;
         cout << endl;
-    }
+    } 
+    file.close();
     if (found == false)
     {
         cout << "\t\t\t Error: No such Person's name can be exist in the donor's list:" << endl;
