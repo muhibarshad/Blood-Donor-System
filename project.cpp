@@ -1,11 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <conio.h>
+#include <string>
 using namespace std;
 
 // global Variables
 fstream file;
-fstream temp;
+ofstream temp;
 const int totalRecords = 1000;
 
 // Structure
@@ -199,8 +200,8 @@ void update_record_ofDonor(record donor[], int index)
     cout << "\t\t\t Enter the name of the donor to update its data:";
     getline(cin, updateBy_name);
     cout << endl;
-    file.open("bds_donor_data.txt", ios::in | ios::binary |ios::out);
-    //to get the curser at the start use the seekg
+    file.open("bds_donor_data.txt", ios::in | ios::binary | ios::out);
+    // to get the curser at the start use the seekg
     file.seekg(0);
     if (file.is_open())
     {
@@ -213,31 +214,80 @@ void update_record_ofDonor(record donor[], int index)
                 // updation
                 cout << "\t\t\t** Donor blood donation times updated from " << donor[i].no_ofDonate << " to " << donor[i].no_ofDonate + 1 << "**" << endl;
                 cout << "\t\t\t   Enter the date of the updated Donation:";
-                getline(cin,donor[i].dateof_Donation);
-                donor[i].no_ofDonate = donor[i].no_ofDonate+1;
-                
-                //to change the position of the getting cursor position use seekp
-                //ios::cur is the offset of the seekp that gives that we want to be beg,cur and end position of the file
-                //seekp has the two arguments first gives how much bytes it can move,and second argument gives where to start move the position where 
-                //negative sign show move forward or backward
-                file.seekp(-sizeof(record),ios::cur);
+                getline(cin, donor[i].dateof_Donation);
+                donor[i].no_ofDonate = donor[i].no_ofDonate + 1;
+
+                // to change the position of the getting cursor position use seekp
+                // ios::cur is the offset of the seekp that gives that we want to be beg,cur and end position of the file
+                // seekp has the two arguments first gives how much bytes it can move,and second argument gives where to start move the position where
+                // negative sign show move forward or backward
+                file.seekp(-sizeof(record), ios::cur);
                 file.write(reinterpret_cast<char *>(&donor[i]), sizeof(record));
 
                 found = true;
-            }   
+            }
         }
-        
+        cout << endl;
+        cout << "\t\t\t\t Recorded Updated Successfully:" << endl;
+        cout << endl;
     }
     else
     {
         cout << endl;
         cout << "\t\t\t File is not openend:" << endl;
         cout << endl;
-    } 
+    }
     file.close();
     if (found == false)
     {
         cout << "\t\t\t Error: No such Person's name can be exist in the donor's list:" << endl;
+    }
+}
+
+// Function for  Remove donor’s record (May be due to medical reasons).
+void delete_record_ofDonor(record donor[], int index)
+{
+    string deleteBy_rollNum;
+    bool found = false;
+    cout << endl;
+    cout << "\t\t\t Enter the roll number of the donor to  Remove his/her record (May be due to medical reasons).";
+    getline(cin, deleteBy_rollNum);
+    cout << endl;
+    file.open("bds_donor_data.txt", ios::in | ios::binary | ios::out);
+    temp.open("temp.txt", ios::binary | ios::out);
+    // to get the curser at the start use the seekg
+    if (file.is_open() && temp.is_open())
+    {
+        for (int i = 0; i < index; i++)
+        {
+            file.read(reinterpret_cast<char *>(&donor[i]), sizeof(record));
+
+            if (donor[i].rollNum != deleteBy_rollNum)
+            {
+                // Copying data from bds_donor_data.txt to temp.txt except the deleted data
+                temp.write(reinterpret_cast<char *>(&donor[i]), sizeof(record));
+                found = true;
+            }
+        }
+        file.close();
+        temp.close();
+        // Removation of non-removed data file
+        remove("bds_donor_data.txt");
+        // Rename the temp file to the bds_donor_data.txt
+        rename("temp.txt", "bds_donor_data.txt");
+        cout << endl;
+        cout << "\t\t\t\t Recorded Deleted Successfully:" << endl;
+        cout << endl;
+    }
+    else
+    {
+        cout << endl;
+        cout << "\t\t\t File is not openend:" << endl;
+        cout << endl;
+    }
+    if (found == false)
+    {
+        cout << "\t\t\t Error: No such Roll Number name can be exist in the donor's list:" << endl;
     }
 }
 
@@ -259,7 +309,7 @@ void blood_donor_managementSystem()
         while (!file.eof())
         {
             file >> ch[i];
-            if (i % 224 == 0)
+            if (i % sizeof(record) == 0)
             {
                 index++;
             }
@@ -354,6 +404,21 @@ void blood_donor_managementSystem()
             if (iF_recordAdded == true)
             {
                 update_record_ofDonor(donors, index);
+            }
+            if (iF_recordAdded == false)
+            {
+                cout << endl;
+                cout << "\t\t\t\t ***Error:Firstly add the data At least enter the one donors data:***" << endl;
+            }
+            break;
+        }
+
+        // Delete the record
+        case 'r':
+        {
+            if (iF_recordAdded == true)
+            {
+                delete_record_ofDonor(donors, index);
             }
             if (iF_recordAdded == false)
             {
