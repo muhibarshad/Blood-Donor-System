@@ -131,14 +131,14 @@ void search_record_ByName(record donor[], int index)
     if (file.is_open())
     {
         cout << "\t\t\t\t****************DATA OF THE DONOR " << searchBy_name << " ************" << endl;
-        for (int i = 0; i < index && found == false; i++)
+        for (int i = 0; i < index; i++)
         {
             file.read(reinterpret_cast<char *>(&donor[i]), sizeof(record));
             if (donor[i].name == searchBy_name)
             {
                 recordOf_specificDonor(donor, i);
                 found = true;
-                break;
+//                break;
             }
         }
     }
